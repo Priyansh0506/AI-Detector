@@ -315,7 +315,7 @@
             if (!model) { requestAnimationFrame(detectLoop); return; }
 
             // Get predictions from model
-            const predictions = await model.predict(video);
+            const predictions = await model.predict(video, false);
 
             // Find the class with highest probability
             let topIndex = 0;
