@@ -405,6 +405,7 @@
 
         let model = null;
         let frameCount = 0;
+        let fpsFrameCount = 0;
         let lastFpsTime = performance.now();
 
         const video    = document.getElementById("video");
@@ -466,8 +467,8 @@
             // Calculate FPS every second
             const now = performance.now();
             if (now - lastFpsTime >= 1000) {
-                document.getElementById("stat-fps").textContent = frameCount;
-                frameCount  = 0;
+           document.getElementById("stat-fps").textContent = fpsFrameCount;
+fpsFrameCount = 0;
                 lastFpsTime = now;
             }
 
