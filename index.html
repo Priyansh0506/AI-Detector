@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Detector</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/hand-pose-detection@2.0.1/dist/hand-pose-detection.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #111;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px 16px 60px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .header h1 span { color: #5b7fff; }
+        .header p { color: #555; font-size: 0.85rem; margin-top: 4px; }
+
+        /* CAMERA */
+        .camera-wrapper {
+            position: relative;
+            width: 640px;
+            height: 460px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+        }
+        #video {
+            position: absolute;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        #canvas {
+            position: absolute;
+            width: 100%; height: 100%;
+            z-index: 2;
+            transform: scaleX(-1);
+        }
+
+        /* CARDS */
+        .stats-section {
+            margin-top: 16px;
+            width: 640px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .stat-card {
+            background: #1c1c1c;
+            border-radius: 10px;
+            padding: 14px 10px;
+            text-align: center;
+            transition: background 0.2s;
+        }
+        .stat-card.alert  { background: #2a1515; }
+        .stat-card.safe   { background: #132213; }
+        .stat-card.active { background: #161a2e; }
+        .stat-icon { font-size: 1.4rem; margin-bottom: 5px; }
+        .stat-label {
+            font-size: 0.62rem; font-weight: 600;
+            color: #555; text-transform: uppercase;
+            letter-spacing: 0.08em; margin-bottom: 4px;
+        }
+        .stat-value { font-size: 1.2rem; font-weight: 700; color: #eee; }
+
+        /* BOTTOM */
+        .prediction-row {
+            margin-top: 10px;
+            width: 640px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .prediction-box {
+            background: #1c1c1c;
+            border-radius: 10px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pred-left .label {
+            font-size: 0.65rem; font-weight: 600;
+            color: #555; text-transform: uppercase;
+            letter-spacing: 0.08em; margin-bottom: 6px;
+        }
+        .pred-left .value {
+            font-size: 1.1rem; font-weight: 700; color: #5b7fff;
+        }
+        .pred-right { text-align: right; }
+        .pred-right .big { font-size: 1.9rem; font-weight: 800; color: #fff; }
+        .pred-right .small { font-size: 0.65rem; color: #555; margin-top: 2px; }
+
+        #status { margin-top: 14px; color: #444; font-size: 0.78rem; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>AI <span>Detector</span></h1>
+        <p>Person detection · Hand gesture recognition</p>
+    </div>
+
+    <div class="camera-wrapper">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="stats-section">
+        <div class="stat-card" id="card-status">
+            <div class="stat-icon">👁️</div>
+            <div class="stat-label">Status</div>
+            <div class="stat-value" id="val-status">Scanning</div>
+        </div>
+        <div class="stat-card" id="card-count">
+            <div class="stat-icon">👤</div>
+            <div class="stat-label">People</div>
+            <div class="stat-value" id="val-count">0</div>
+        </div>
+        <div class="stat-card" id="card-conf">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-label">Confidence</div>
+            <div class="stat-value" id="val-conf">--%</div>
+        </div>
+        <div class="stat-card" id="card-gesture">
+            <div class="stat-icon" id="gesture-icon">✋</div>
+            <div class="stat-label">Gesture</div>
+            <div class="stat-value" id="val-gesture" style="font-size:0.85rem;">—</div>
+        </div>
+    </div>
+
+    <div class="prediction-row">
+        <div class="prediction-box">
+            <div class="pred-left">
+                <div class="label">Person Detection</div>
+                <div class="value" id="main-label">Initializing...</div>
+            </div>
+            <div class="pred-right">
+                <div class="big" id="main-conf">--</div>
+                <div class="small">Confidence %</div>
+            </div>
+        </div>
+        <div class="prediction-box">
+            <div class="pred-left">
+                <div class="label">Hand Gesture</div>
+                <div class="value" id="gesture-label">Loading...</div>
+            </div>
+            <div class="pred-right">
+                <div class="big" id="gesture-emoji">🤔</div>
+                <div class="small">Detected</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="status">Loading models...</div>
+
+    <script>
+        let cocoModel = null, handDetector = null;
+        const video  = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const ctx    = canvas.getContext("2d");
+
+        function classifyGesture(kp) {
+            const thumbUp  = kp[4].y  < kp[3].y;
+            const indexUp  = kp[8].y  < kp[6].y;
+            const middleUp = kp[12].y < kp[10].y;
+            const ringUp   = kp[16].y < kp[14].y;
+            const pinkyUp  = kp[20].y < kp[18].y;
+            const up = [indexUp,middleUp,ringUp,pinkyUp].filter(Boolean).length;
+
+            if ( thumbUp && !indexUp && !middleUp && !ringUp && !pinkyUp) return {e:'👍',n:'Thumbs Up'};
+            if (!thumbUp && !indexUp && !middleUp && !ringUp && !pinkyUp) return {e:'✊',n:'Fist'};
+            if (!thumbUp &&  indexUp &&  middleUp && !ringUp && !pinkyUp) return {e:'✌️',n:'Peace'};
+            if (!thumbUp &&  indexUp && !middleUp && !ringUp && !pinkyUp) return {e:'☝️',n:'Pointing'};
+            if ( thumbUp && !indexUp && !middleUp && !ringUp &&  pinkyUp) return {e:'🤙',n:'Call Me'};
+            if ( thumbUp &&  indexUp && !middleUp && !ringUp && !pinkyUp) return {e:'🤘',n:'Rock On'};
+            if ( indexUp &&  middleUp && ringUp   &&  pinkyUp)            return {e:'🖐️',n:'Open Hand'};
+            if ( thumbUp &&  indexUp &&  middleUp && ringUp   &&  pinkyUp)return {e:'🙌',n:'All Five!'};
+            return {e:'🤟', n:`${up} Fingers`};
+        }
+
+        const CONN = [
+            [0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],
+            [0,9],[9,10],[10,11],[11,12],[0,13],[13,14],[14,15],[15,16],
+            [0,17],[17,18],[18,19],[19,20],[5,9],[9,13],[13,17]
+        ];
+        function drawHand(kp) {
+            ctx.strokeStyle = "#5b7fff"; ctx.lineWidth = 2;
+            CONN.forEach(([i,j]) => {
+                ctx.beginPath(); ctx.moveTo(kp[i].x,kp[i].y);
+                ctx.lineTo(kp[j].x,kp[j].y); ctx.stroke();
+            });
+            kp.forEach((p,i) => {
+                const tip = [4,8,12,16,20].includes(i);
+                ctx.beginPath(); ctx.arc(p.x,p.y,tip?6:4,0,2*Math.PI);
+                ctx.fillStyle = tip ? "#ff6b6b" : "#5b7fff"; ctx.fill();
+            });
+        }
+
+        function drawBoxes(preds) {
+            preds.forEach(pred => {
+                if (pred.class !== "person") return;
+                const [x,y,w,h] = pred.bbox;
+                ctx.strokeStyle = "#5b7fff"; ctx.lineWidth = 2;
+                ctx.strokeRect(x,y,w,h);
+                ctx.fillStyle = "rgba(91,127,255,0.08)"; ctx.fillRect(x,y,w,h);
+                ctx.fillStyle = "#5b7fff"; ctx.fillRect(x,y-24,150,24);
+                ctx.fillStyle = "white"; ctx.font = "bold 12px sans-serif";
+                ctx.fillText(`Person  ${(pred.score*100).toFixed(1)}%`, x+8, y-6);
+            });
+        }
+
+        function updatePersonUI(preds) {
+            const people  = preds.filter(p => p.class === "person");
+            const count   = people.length;
+            const topConf = count > 0 ? Math.max(...people.map(p => p.score)) : 0;
+            document.getElementById("val-count").textContent = count;
+            const sc = document.getElementById("card-status");
+            const sv = document.getElementById("val-status");
+            if (count > 0) {
+                sv.textContent = "Detected"; sc.className = "stat-card alert";
+                document.getElementById("card-count").className = "stat-card alert";
+            } else {
+                sv.textContent = "Clear"; sc.className = "stat-card safe";
+                document.getElementById("card-count").className = "stat-card";
+            }
+            document.getElementById("val-conf").textContent  = count > 0 ? (topConf*100).toFixed(1)+"%" : "--%";
+            document.getElementById("main-label").textContent = count > 0 ? `${count} Person${count>1?"s":""} Detected` : "No Person";
+            document.getElementById("main-conf").textContent  = count > 0 ? (topConf*100).toFixed(1) : "--";
+        }
+
+        async function detectLoop() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            if (cocoModel) {
+                const preds = await cocoModel.detect(video);
+                drawBoxes(preds); updatePersonUI(preds);
+            }
+            if (handDetector) {
+                try {
+                    const hands = await handDetector.estimateHands(video,{flipHorizontal:true});
+                    if (hands.length > 0) {
+                        hands.forEach(h => drawHand(h.keypoints));
+                        const g = classifyGesture(hands[0].keypoints);
+                        document.getElementById("gesture-label").textContent = g.n;
+                        document.getElementById("gesture-emoji").textContent = g.e;
+                        document.getElementById("gesture-icon").textContent  = g.e;
+                        document.getElementById("val-gesture").textContent   = g.n;
+                        document.getElementById("card-gesture").className    = "stat-card active";
+                    } else {
+                        document.getElementById("gesture-label").textContent = "No Hand";
+                        document.getElementById("gesture-emoji").textContent = "🤔";
+                        document.getElementById("gesture-icon").textContent  = "✋";
+                        document.getElementById("val-gesture").textContent   = "—";
+                        document.getElementById("card-gesture").className    = "stat-card";
+                    }
+                } catch(e) {}
+            }
+            requestAnimationFrame(detectLoop);
+        }
+
+        async function main() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({video:true});
+                video.srcObject = stream;
+                await new Promise(res => video.onloadedmetadata = () => {
+                    canvas.width = video.videoWidth; canvas.height = video.videoHeight; res();
+                });
+                document.getElementById("status").textContent = "Loading person detection...";
+                cocoModel = await cocoSsd.load();
+                document.getElementById("status").textContent = "Loading gesture model...";
+                handDetector = await handPoseDetection.createDetector(
+                    handPoseDetection.SupportedModels.MediaPipeHands, {
+                        runtime: 'mediapipe',
+                        solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240',
+                        modelType: 'full', maxHands: 2
+                    }
+                );
+                document.getElementById("status").textContent = "Ready ✓";
+                detectLoop();
+            } catch(err) {
+                document.getElementById("status").textContent = "Error: " + err.message;
+            }
+        }
+
+        main();
+    </script>
+</body>
+</html>
