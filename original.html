@@ -16,9 +16,7 @@
             --card:   #0d1117;
             --border: #1a2030;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             background: var(--bg);
             min-height: 100vh;
@@ -30,8 +28,6 @@
             padding: 32px 16px 60px;
             overflow-x: hidden;
         }
-
-        /* Subtle grid background */
         body::before {
             content: '';
             position: fixed;
@@ -43,15 +39,12 @@
             pointer-events: none;
             z-index: 0;
         }
-
-        /* ── HEADER ── */
         .header {
             position: relative;
             z-index: 1;
             text-align: center;
             margin-bottom: 32px;
         }
-
         .header-tag {
             display: inline-block;
             font-size: 0.6rem;
@@ -63,27 +56,15 @@
             margin-bottom: 12px;
             text-transform: uppercase;
         }
-
         .header h1 {
             font-family: 'Syne', sans-serif;
             font-size: 2.6rem;
             font-weight: 800;
             color: #fff;
             letter-spacing: -0.02em;
-            line-height: 1;
         }
-
         .header h1 span { color: var(--green); }
-
-        .header p {
-            font-size: 0.65rem;
-            color: #3a4560;
-            letter-spacing: 0.15em;
-            margin-top: 8px;
-            text-transform: uppercase;
-        }
-
-        /* ── MAIN LAYOUT ── */
+        .header p { font-size: 0.65rem; color: #3a4560; letter-spacing: 0.15em; margin-top: 8px; text-transform: uppercase; }
         .main-grid {
             position: relative;
             z-index: 1;
@@ -93,8 +74,6 @@
             width: 100%;
             max-width: 920px;
         }
-
-        /* ── CAMERA ── */
         .camera-wrap {
             position: relative;
             aspect-ratio: 4/3;
@@ -103,213 +82,75 @@
             border-radius: 4px;
             overflow: hidden;
         }
-
         #video {
             width: 100%; height: 100%;
             object-fit: cover;
             transform: scaleX(-1);
             display: block;
         }
-
-        /* Corner brackets */
-        .corner {
-            position: absolute;
-            width: 18px; height: 18px;
-            z-index: 5;
-        }
-        .corner.tl { top: 10px; left: 10px; border-top: 2px solid var(--green); border-left: 2px solid var(--green); }
-        .corner.tr { top: 10px; right: 10px; border-top: 2px solid var(--green); border-right: 2px solid var(--green); }
-        .corner.bl { bottom: 10px; left: 10px; border-bottom: 2px solid var(--green); border-left: 2px solid var(--green); }
-        .corner.br { bottom: 10px; right: 10px; border-bottom: 2px solid var(--green); border-right: 2px solid var(--green); }
-
-        /* Scan line */
+        .corner { position: absolute; width: 18px; height: 18px; z-index: 5; }
+        .corner.tl { top:10px; left:10px; border-top:2px solid var(--green); border-left:2px solid var(--green); }
+        .corner.tr { top:10px; right:10px; border-top:2px solid var(--green); border-right:2px solid var(--green); }
+        .corner.bl { bottom:10px; left:10px; border-bottom:2px solid var(--green); border-left:2px solid var(--green); }
+        .corner.br { bottom:10px; right:10px; border-bottom:2px solid var(--green); border-right:2px solid var(--green); }
         .scan {
-            position: absolute;
-            left: 0; top: -2px;
-            width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent 0%, var(--green) 50%, transparent 100%);
+            position: absolute; left:0; top:0;
+            width:100%; height:2px;
+            background: linear-gradient(90deg, transparent, var(--green), transparent);
             opacity: 0.5;
             animation: scanMove 2.5s linear infinite;
             z-index: 4;
         }
-        @keyframes scanMove { 0% { top: 0; } 100% { top: 100%; } }
-
-        /* Live badge */
+        @keyframes scanMove { 0%{top:0} 100%{top:100%} }
         .live-badge {
-            position: absolute;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
-            border: 1px solid rgba(0,255,136,0.3);
-            border-radius: 2px;
-            padding: 3px 10px;
-            font-size: 0.55rem;
-            letter-spacing: 0.2em;
-            color: var(--green);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            z-index: 5;
+            position: absolute; top:12px; left:50%; transform:translateX(-50%);
+            background:rgba(0,0,0,0.7); border:1px solid rgba(0,255,136,0.3);
+            border-radius:2px; padding:3px 10px; font-size:0.55rem;
+            letter-spacing:0.2em; color:var(--green);
+            display:flex; align-items:center; gap:6px; z-index:5;
         }
-        .live-dot {
-            width: 5px; height: 5px;
-            border-radius: 50%;
-            background: var(--green);
-            animation: blink 1s ease infinite;
-        }
+        .live-dot { width:5px; height:5px; border-radius:50%; background:var(--green); animation:blink 1s ease infinite; }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
-
-        /* ── SIDEBAR ── */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .sidebar { display:flex; flex-direction:column; gap:12px; }
+        .card { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:16px; }
+        .card-label { font-size:0.55rem; letter-spacing:0.2em; color:#2a3550; text-transform:uppercase; margin-bottom:10px; }
+        .result-class {
+            font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800;
+            color:var(--green); transition:color 0.3s; word-break:break-word;
         }
-
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 16px;
-        }
-
-        .card-label {
-            font-size: 0.55rem;
-            letter-spacing: 0.2em;
-            color: #2a3550;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-
-        /* Detection result card */
-        .result-card .result-class {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--green);
-            transition: color 0.3s;
-            word-break: break-word;
-        }
-        .result-card .result-class.background { color: #2a3550; }
-        .result-card .result-class.phone      { color: var(--orange); }
-
-        .result-card .result-conf {
-            font-size: 2.4rem;
-            font-weight: 700;
-            color: rgba(255,255,255,0.08);
-            line-height: 1;
-            margin-top: 4px;
-        }
-
-        /* Probability bars */
-        .bars { display: flex; flex-direction: column; gap: 10px; }
-
-        .bar-row { display: flex; flex-direction: column; gap: 4px; }
-
-        .bar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .bar-name {
-            font-size: 0.6rem;
-            letter-spacing: 0.08em;
-            color: #3a4560;
-            text-transform: uppercase;
-        }
-
-        .bar-pct {
-            font-size: 0.65rem;
-            color: #4a5580;
-            font-weight: 700;
-        }
-
-        .bar-track {
-            height: 3px;
-            background: #111822;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .bar-fill {
-            height: 100%;
-            width: 0%;
-            border-radius: 2px;
-            transition: width 0.15s ease;
-            background: var(--green);
-        }
-        .bar-fill.phone-fill  { background: var(--orange); }
-        .bar-fill.bg-fill     { background: #1a2535; }
-
-        /* Status card */
-        .status-card #status {
-            font-size: 0.65rem;
-            letter-spacing: 0.1em;
-            color: #2a3550;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .status-card #status.ready { color: var(--green); }
-        .status-card #status.error { color: var(--orange); }
-
-        /* Model info card */
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.6rem;
-        }
-        .info-row:last-child { border-bottom: none; }
-        .info-key { color: #2a3550; letter-spacing: 0.08em; text-transform: uppercase; }
-        .info-val { color: #5a6580; }
-
-        /* ── BOTTOM BAR ── */
+        .result-class.bg   { color:#2a3550; }
+        .result-class.phone { color:var(--orange); }
+        .result-conf { font-size:2.4rem; font-weight:700; color:rgba(255,255,255,0.08); line-height:1; margin-top:4px; }
+        .bars { display:flex; flex-direction:column; gap:10px; }
+        .bar-row { display:flex; flex-direction:column; gap:4px; }
+        .bar-header { display:flex; justify-content:space-between; align-items:center; }
+        .bar-name { font-size:0.6rem; letter-spacing:0.08em; color:#3a4560; text-transform:uppercase; }
+        .bar-pct { font-size:0.65rem; color:#4a5580; font-weight:700; }
+        .bar-track { height:3px; background:#111822; border-radius:2px; overflow:hidden; }
+        .bar-fill { height:100%; width:0%; border-radius:2px; transition:width 0.15s ease; background:var(--green); }
+        .bar-fill.of { background:var(--orange); }
+        .bar-fill.bf { background:#1a2535; }
+        #status { font-size:0.65rem; letter-spacing:0.1em; color:#2a3550; display:flex; align-items:center; gap:6px; }
+        #status.ready { color:var(--green); }
+        #status.error { color:var(--orange); }
+        .info-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border); font-size:0.6rem; }
+        .info-row:last-child { border-bottom:none; }
+        .info-key { color:#2a3550; text-transform:uppercase; }
+        .info-val { color:#5a6580; }
         .bottom-bar {
-            position: relative;
-            z-index: 1;
-            margin-top: 16px;
-            width: 100%;
-            max-width: 920px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 14px 20px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            position:relative; z-index:1; margin-top:16px;
+            width:100%; max-width:920px;
+            background:var(--card); border:1px solid var(--border);
+            border-radius:4px; padding:14px 20px;
+            display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
         }
-
-        .stat {
-            text-align: center;
-        }
-        .stat-val {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #fff;
-        }
-        .stat-key {
-            font-size: 0.55rem;
-            letter-spacing: 0.15em;
-            color: #2a3550;
-            text-transform: uppercase;
-            margin-top: 2px;
-        }
-
-        /* Responsive */
-        @media (max-width: 700px) {
-            .main-grid { grid-template-columns: 1fr; }
-            .header h1 { font-size: 1.8rem; }
-        }
+        .stat { text-align:center; }
+        .stat-val { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; color:#fff; }
+        .stat-key { font-size:0.55rem; letter-spacing:0.15em; color:#2a3550; text-transform:uppercase; margin-top:2px; }
+        @media(max-width:700px){ .main-grid{grid-template-columns:1fr} .header h1{font-size:1.8rem} }
     </style>
 </head>
 <body>
-
     <div class="header">
         <div class="header-tag">Teachable Machine · TF.js</div>
         <h1>AI <span>Detector</span></h1>
@@ -317,187 +158,143 @@
     </div>
 
     <div class="main-grid">
-
-        <!-- Camera -->
         <div class="camera-wrap">
-            <div class="corner tl"></div>
-            <div class="corner tr"></div>
-            <div class="corner bl"></div>
-            <div class="corner br"></div>
+            <div class="corner tl"></div><div class="corner tr"></div>
+            <div class="corner bl"></div><div class="corner br"></div>
             <div class="scan"></div>
             <div class="live-badge"><div class="live-dot"></div>LIVE</div>
             <video id="video" autoplay playsinline muted></video>
         </div>
 
-        <!-- Sidebar -->
         <div class="sidebar">
-
-            <!-- Result -->
-            <div class="card result-card">
+            <div class="card">
                 <div class="card-label">── Detection Result</div>
-                <div class="result-class background" id="result-class">Waiting...</div>
+                <div class="result-class bg" id="result-class">Waiting...</div>
                 <div class="result-conf" id="result-conf">--%</div>
             </div>
-
-            <!-- Probability bars -->
             <div class="card">
                 <div class="card-label">── Class Probabilities</div>
                 <div class="bars" id="bars-container"></div>
             </div>
-
-            <!-- Status -->
-            <div class="card status-card">
+            <div class="card">
                 <div class="card-label">── System Status</div>
                 <div id="status">Loading model...</div>
             </div>
-
-            <!-- Model info -->
             <div class="card">
                 <div class="card-label">── Model Info</div>
-                <div class="info-row">
-                    <span class="info-key">Architecture</span>
-                    <span class="info-val">MobileNet</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-key">Runtime</span>
-                    <span class="info-val">TF.js 4.10</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-key">Classes</span>
-                    <span class="info-val">3</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-key">Input</span>
-                    <span class="info-val">224 × 224</span>
-                </div>
+                <div class="info-row"><span class="info-key">Architecture</span><span class="info-val">MobileNet</span></div>
+                <div class="info-row"><span class="info-key">Runtime</span><span class="info-val">TF.js 4.10</span></div>
+                <div class="info-row"><span class="info-key">Classes</span><span class="info-val">3</span></div>
+                <div class="info-row"><span class="info-key">Input</span><span class="info-val">224 × 224</span></div>
             </div>
-
         </div>
     </div>
 
-    <!-- Bottom stats -->
     <div class="bottom-bar">
-        <div class="stat">
-            <div class="stat-val" id="stat-fps">--</div>
-            <div class="stat-key">FPS</div>
-        </div>
-        <div class="stat">
-            <div class="stat-val" id="stat-frames">0</div>
-            <div class="stat-key">Frames</div>
-        </div>
-        <div class="stat">
-            <div class="stat-val" id="stat-top">--</div>
-            <div class="stat-key">Top Class</div>
-        </div>
+        <div class="stat"><div class="stat-val" id="stat-fps">--</div><div class="stat-key">FPS</div></div>
+        <div class="stat"><div class="stat-val" id="stat-frames">0</div><div class="stat-key">Frames</div></div>
+        <div class="stat"><div class="stat-val" id="stat-top">--</div><div class="stat-key">Top Class</div></div>
     </div>
 
     <script>
-        // ─── CONFIG ───────────────────────────────────────────────
-        // model.json and weights must be in the same folder as this HTML
-        const MODEL_URL = "./model.json";
+        const MODEL_URL   = "./model.json";
+        const META_URL    = "./metadata.json";
+        const CLASS_NAMES = ["Background", "AI for India", "Phone"];
+        const CLASS_CSS   = ["bg", "", "phone"];
 
-        // Class names — same order as model.json
-        const CLASS_NAMES  = ["Background", "AI for India", "Phone"];
-
-        // CSS class for color coding each label
-        const CLASS_STYLES = ["background", "ai-india", "phone"];
-        // ─────────────────────────────────────────────────────────
-
-        let model = null;
-        let frameCount = 0;
-        let fpsFrameCount = 0;
-        let lastFpsTime = performance.now();
+        let model        = null;
+        let frameCount   = 0;
+        let fpsCount     = 0;
+        let lastFpsTime  = performance.now();
+        let running      = false;
 
         const video    = document.getElementById("video");
         const statusEl = document.getElementById("status");
 
-        // Dynamically create probability bars
-        const barsContainer = document.getElementById("bars-container");
+        // Build probability bars
+        const barsEl = document.getElementById("bars-container");
         CLASS_NAMES.forEach((name, i) => {
-            const fillClass = i === 0 ? "bg-fill" : i === 2 ? "phone-fill" : "";
-            const row = document.createElement("div");
-            row.className = "bar-row";
-            row.innerHTML = `
-                <div class="bar-header">
-                    <span class="bar-name">${name}</span>
-                    <span class="bar-pct" id="pct-${i}">0%</span>
-                </div>
-                <div class="bar-track">
-                    <div class="bar-fill ${fillClass}" id="bar-${i}"></div>
-                </div>
-            `;
-            barsContainer.appendChild(row);
+            const fillCls = i === 0 ? "bf" : i === 2 ? "of" : "";
+            barsEl.insertAdjacentHTML("beforeend", `
+                <div class="bar-row">
+                    <div class="bar-header">
+                        <span class="bar-name">${name}</span>
+                        <span class="bar-pct" id="pct${i}">0%</span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill ${fillCls}" id="bar${i}"></div>
+                    </div>
+                </div>`);
         });
 
-        // Detection loop — runs every animation frame
-        async function detectLoop() {
-            if (!model) { requestAnimationFrame(detectLoop); return; }
+        // Run prediction every 200ms (stable interval — not rAF)
+        async function runPrediction() {
+            if (!model || !running) return;
 
-            // Get predictions from Teachable Machine model
-            const predictions = await model.predict(video);
+            try {
+                const preds = await model.predict(video);
 
-            // Find class with highest probability
-            let topIndex = 0;
-            let topProb  = 0;
+                let topIdx = 0, topProb = 0;
 
-            predictions.forEach((p, i) => {
-                // Update probability bars
-                const pct = (p.probability * 100).toFixed(1);
-                document.getElementById(`bar-${i}`).style.width = pct + "%";
-                document.getElementById(`pct-${i}`).textContent  = pct + "%";
+                preds.forEach((p, i) => {
+                    const pct = (p.probability * 100).toFixed(1);
+                    document.getElementById("bar"  + i).style.width   = pct + "%";
+                    document.getElementById("pct"  + i).textContent    = pct + "%";
+                    if (p.probability > topProb) { topProb = p.probability; topIdx = i; }
+                });
 
-                if (p.probability > topProb) {
-                    topProb  = p.probability;
-                    topIndex = i;
+                // Update result
+                const rc = document.getElementById("result-class");
+                const cf = document.getElementById("result-conf");
+                rc.textContent = CLASS_NAMES[topIdx];
+                rc.className   = "result-class " + CLASS_CSS[topIdx];
+                cf.textContent = (topProb * 100).toFixed(1) + "%";
+
+                // Stats
+                frameCount++;
+                fpsCount++;
+                document.getElementById("stat-frames").textContent = frameCount;
+                document.getElementById("stat-top").textContent    = CLASS_NAMES[topIdx].split(" ")[0];
+
+                const now = performance.now();
+                if (now - lastFpsTime >= 1000) {
+                    document.getElementById("stat-fps").textContent = fpsCount;
+                    fpsCount = 0;
+                    lastFpsTime = now;
                 }
-            });
-
-            // Update result display
-            const classEl = document.getElementById("result-class");
-            const confEl  = document.getElementById("result-conf");
-            classEl.textContent = CLASS_NAMES[topIndex];
-            confEl.textContent  = (topProb * 100).toFixed(1) + "%";
-            classEl.className   = "result-class " + CLASS_STYLES[topIndex];
-
-            // Update bottom stats
-            frameCount++;
-            document.getElementById("stat-frames").textContent = frameCount;
-            document.getElementById("stat-top").textContent    = CLASS_NAMES[topIndex].split(" ")[0];
-
-            // Calculate FPS every second
-            const now = performance.now();
-            if (now - lastFpsTime >= 1000) {
-           document.getElementById("stat-fps").textContent = fpsFrameCount;
-fpsFrameCount = 0;
-                lastFpsTime = now;
+            } catch(e) {
+                console.warn("Predict error:", e);
             }
 
-            requestAnimationFrame(detectLoop);
+            setTimeout(runPrediction, 200); // run every 200ms
         }
 
-        // Main function
         async function main() {
             try {
-                // Step 1: Start webcam
                 statusEl.textContent = "Starting webcam...";
+
+                // Start webcam
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
-                await new Promise(res => video.onloadedmetadata = res);
 
-                // Step 2: Load Teachable Machine model
-                statusEl.textContent = "Loading model...";
-                model = await tmImage.load(
-                    MODEL_URL,
-                    MODEL_URL.replace("model.json", "metadata.json")
-                );
+                // Wait for video to be ready
+                await new Promise((res) => {
+                    video.onloadeddata = res;
+                    video.onloadedmetadata = () => video.play().catch(()=>{});
+                });
 
-                // Step 3: All ready — start detection
-                statusEl.innerHTML = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;animation:blink 1s ease infinite;vertical-align:middle"></span>Model loaded · Running';
+                statusEl.textContent = "Loading Teachable Machine model...";
+
+                // Load model
+                model = await tmImage.load(MODEL_URL, META_URL);
+
+                statusEl.innerHTML = `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;animation:blink 1s ease infinite;vertical-align:middle"></span>Model loaded · Running`;
                 statusEl.className = "ready";
 
-                detectLoop();
+                running = true;
+                runPrediction(); // start loop
 
-            } catch (err) {
+            } catch(err) {
                 statusEl.textContent = "Error: " + err.message;
                 statusEl.className   = "error";
                 console.error(err);
