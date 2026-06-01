@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI for India Detector</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+
+        /* Scan line effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,255,100,0.015) 2px,
+                rgba(0,255,100,0.015) 4px
+            );
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: #00ff64;
+            text-shadow: 0 0 20px rgba(0,255,100,0.4);
+        }
+
+        .header p {
+            color: #444;
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            margin-top: 6px;
+            text-transform: uppercase;
+        }
+
+        /* Camera */
+        .camera-wrapper {
+            position: relative;
+            width: 560px;
+            height: 420px;
+            border: 1px solid #1a1a1a;
+            background: #000;
+            overflow: hidden;
+        }
+
+        /* Corner brackets */
+        .camera-wrapper::before,
+        .camera-wrapper::after {
+            content: '';
+            position: absolute;
+            width: 20px; height: 20px;
+            z-index: 10;
+        }
+        .camera-wrapper::before {
+            top: 8px; left: 8px;
+            border-top: 2px solid #00ff64;
+            border-left: 2px solid #00ff64;
+        }
+        .camera-wrapper::after {
+            bottom: 8px; right: 8px;
+            border-bottom: 2px solid #00ff64;
+            border-right: 2px solid #00ff64;
+        }
+
+        .corner-tr, .corner-bl {
+            position: absolute;
+            width: 20px; height: 20px;
+            z-index: 10;
+        }
+        .corner-tr {
+            top: 8px; right: 8px;
+            border-top: 2px solid #00ff64;
+            border-right: 2px solid #00ff64;
+        }
+        .corner-bl {
+            bottom: 8px; left: 8px;
+            border-bottom: 2px solid #00ff64;
+            border-left: 2px solid #00ff64;
+        }
+
+        #video {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            display: block;
+        }
+
+        /* Scan animation */
+        .scan-line {
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff64, transparent);
+            animation: scan 3s linear infinite;
+            z-index: 5;
+            opacity: 0.6;
+        }
+
+        @keyframes scan {
+            0%   { top: 0; }
+            100% { top: 100%; }
+        }
+
+        /* Result panel */
+        .result-panel {
+            margin-top: 16px;
+            width: 560px;
+            border: 1px solid #1a1a1a;
+            padding: 20px 24px;
+            background: #0d0d0d;
+        }
+
+        .result-label {
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            color: #333;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .result-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .result-class {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: #00ff64;
+            text-shadow: 0 0 15px rgba(0,255,100,0.3);
+            transition: all 0.3s;
+        }
+
+        .result-class.background { color: #333; text-shadow: none; }
+        .result-class.phone      { color: #ff6b35; text-shadow: 0 0 15px rgba(255,107,53,0.3); }
+
+        .result-conf {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #fff;
+            opacity: 0.15;
+        }
+
+        /* Bars */
+        .bars {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bar-name {
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            color: #444;
+            text-transform: uppercase;
+            width: 110px;
+            flex-shrink: 0;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 3px;
+            background: #1a1a1a;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: #00ff64;
+            width: 0%;
+            transition: width 0.2s ease;
+        }
+
+        .bar-fill.phone-fill { background: #ff6b35; }
+        .bar-fill.bg-fill    { background: #333; }
+
+        .bar-pct {
+            font-size: 0.65rem;
+            color: #444;
+            width: 38px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* Status */
+        #status {
+            margin-top: 14px;
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            color: #333;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        #status.ready { color: #00ff64; }
+        #status.error { color: #ff4444; }
+
+        /* Blink dot */
+        .dot {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #00ff64;
+            margin-right: 6px;
+            animation: blink 1s ease-in-out infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.2; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>AI Detector</h1>
+        <p>Teachable Machine · Real-time Classification</p>
+    </div>
+
+    <div class="camera-wrapper">
+        <div class="corner-tr"></div>
+        <div class="corner-bl"></div>
+        <div class="scan-line"></div>
+        <video id="video" autoplay playsinline muted></video>
+    </div>
+
+    <div class="result-panel">
+        <div class="result-label">── Detection Result ──</div>
+        <div class="result-main">
+            <div class="result-class" id="result-class">Initializing</div>
+            <div class="result-conf" id="result-conf">--%</div>
+        </div>
+
+        <div class="bars" id="bars-container">
+            <!-- bars injected by JS -->
+        </div>
+    </div>
+
+    <div id="status">Loading model...</div>
+
+    <script>
+        // ─── CONFIG ──────────────────────────────────────────────────
+        // model.json and weights must be in the same folder as this HTML file
+        const MODEL_URL = "./model.json";
+
+        // Class names in the same order as model.json
+        const CLASS_NAMES = ["Background", "AI for India", "Phone"];
+
+        // CSS class name for each label (controls color)
+        const CLASS_STYLES = ["background", "ai-india", "phone"];
+        // ─────────────────────────────────────────────────────────────
+
+        let model = null;
+        const video   = document.getElementById("video");
+        const statusEl = document.getElementById("status");
+
+        // ── Dynamically create probability bars for each class ──
+        const barsContainer = document.getElementById("bars-container");
+        CLASS_NAMES.forEach((name, i) => {
+            const row = document.createElement("div");
+            row.className = "bar-row";
+            const fillClass = i === 0 ? "bg-fill" : i === 2 ? "phone-fill" : "";
+            row.innerHTML = `
+                <div class="bar-name">${name}</div>
+                <div class="bar-track">
+                    <div class="bar-fill ${fillClass}" id="bar-${i}"></div>
+                </div>
+                <div class="bar-pct" id="pct-${i}">0%</div>
+            `;
+            barsContainer.appendChild(row);
+        });
+
+        // ── Detection loop — runs every frame ──
+        async function detectLoop() {
+            if (!model) { requestAnimationFrame(detectLoop); return; }
+
+            // Get predictions from model
+            const predictions = await model.predict(video);
+
+            // Find the class with highest probability
+            let topIndex = 0;
+            let topProb  = 0;
+            predictions.forEach((p, i) => {
+                // Update probability bars
+                const pct = (p.probability * 100).toFixed(1);
+                document.getElementById(`bar-${i}`).style.width = pct + "%";
+                document.getElementById(`pct-${i}`).textContent  = pct + "%";
+
+                if (p.probability > topProb) {
+                    topProb  = p.probability;
+                    topIndex = i;
+                }
+            });
+
+            // Update main result display
+            const classEl = document.getElementById("result-class");
+            const confEl  = document.getElementById("result-conf");
+
+            classEl.textContent = CLASS_NAMES[topIndex];
+            confEl.textContent  = (topProb * 100).toFixed(1) + "%";
+
+            // Change color based on detected class
+            classEl.className = "result-class " + CLASS_STYLES[topIndex];
+
+            requestAnimationFrame(detectLoop);
+        }
+
+        // ── Main function ──
+        async function main() {
+            try {
+                // Step 1: Start webcam
+                statusEl.textContent = "Starting webcam...";
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                await new Promise(res => video.onloadedmetadata = res);
+
+                // Step 2: Load Teachable Machine model
+                statusEl.textContent = "Loading model...";
+                model = await tmImage.load(MODEL_URL, MODEL_URL.replace("model.json", "metadata.json"));
+
+                // Step 3: Ready!
+                statusEl.innerHTML = '<span class="dot"></span>Live · Model Ready';
+                statusEl.className = "ready";
+
+                // Step 4: Start detection loop
+                detectLoop();
+
+            } catch (err) {
+                statusEl.textContent = "Error: " + err.message;
+                statusEl.className   = "error";
+                console.error(err);
+            }
+        }
+
+        main();
+    </script>
+</body>
+</html>
